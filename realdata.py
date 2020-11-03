@@ -73,7 +73,7 @@ wealth_peaks.head()
 ##print(draw_down["2009"].idxmin())
 ##print(draw_down["2009"].min())
 
-
+## Everything above from class 
 
 parser = argparse.ArgumentParser(description='Ticker Symbol')
 parser.add_argument('ticker')
@@ -82,28 +82,29 @@ args = parser.parse_args()
 
 
 
-msft = yf.Ticker(args.ticker)
+ticker_sym = yf.Ticker(args.ticker)
 pd.set_option('display.max_rows', None)
 
 
-x = msft.history(interval='1mo', period="max")
+x = ticker_sym.history(interval='1mo', period="max")
 ##x = msft.history(period="1d")
-y = msft.splits
-z = msft.dividends
+y = ticker_sym.splits
+z = ticker_sym.dividends
 
+## gets the closing price
 xclose = x.dropna()["Close"]
+## divides by 100 to get percent in decimal 
 xclose = xclose/100
+## changes date format 
 xclose.index = pd.to_datetime(xclose.index, format="%Y%m")
 xclose.index = xclose.index.to_period('M')
+## converts prices to percent change 
 xreturns = xclose.pct_change()
 ##print(xreturns)
 
-##xreturns.plot.line()
-##plt.show()
-##wealth_index = 1000*(1+rets["LargeCap"]).cumprod()
+## Creates a wealth index with 1,000 start value 
 wealth_xclose = round(1000*(1+xreturns).cumprod(),2)
 ##print(wealth_xclose.head)
-
 ##wealth_xclose.plot.line()
 ##plt.show()
 
@@ -112,7 +113,9 @@ previous_xpeak = wealth_xclose.cummax()
 ##previous_xpeak.plot.line()
 ##plt.show()
 
+## Computes drawdown from previous peaks.
 xdraw_down = (wealth_xclose - previous_xpeak)/previous_xpeak
+print(xdraw_down.idxmin())
 print(xdraw_down.min())
 xdraw_down.plot.line()
 plt.show()
@@ -125,7 +128,8 @@ xwealth_peaks = drawdown(xreturns)
 
 xwealth_peaks.plot.line()
 plt.show()
-erk.var_gaussian(xreturns, modified=True)
+##print("Gaussian")
+##print(erk.var_gaussian(xreturns, modified=True))
 
 annualize_returnsp = (xreturns+1).prod()**(12/xreturns.shape[0]) -1
 print('annual returns')
@@ -136,3 +140,10 @@ print(erk.annualize_vol(xreturns, 12))
 ## when looking at sharpe ratios the higher the better 
 print('sharpe ratio higher the better ')
 print(erk.share_ratio(xreturns, 0.03, 12))
+wealth_index = 1000*(1+xreturns).cumprod()
+print("Wealth Index")
+print(round(wealth_index, 2).tail(1))
+wealth_index.plot.line()
+plt.show()
+
+print(erk.semideviation(xreturns))
