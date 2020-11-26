@@ -31,15 +31,17 @@ pd.set_option('display.max_rows', None)
 parser = argparse.ArgumentParser(description='Ticker Symbol')
 parser.add_argument('ticker')
 parser.add_argument('ticker1')
+parser.add_argument('amount')
 
 args = parser.parse_args()
 
 ticker_sym = yf.Ticker(args.ticker)
 ticker_sym1 = yf.Ticker(args.ticker1)
+
 pd.set_option('display.max_rows', None)
 
-stock1 = ticker_sym.history(interval='1d', start="2020-05-20", end="2020-11-25")
-stock2 = ticker_sym1.history(interval='1d', start="2020-05-20", end="2020-11-25")
+stock1 = ticker_sym.history(interval='1d', start="2020-07-22", end="2020-11-25")
+stock2 = ticker_sym1.history(interval='1d', start="2020-07-22", end="2020-11-25")
 
 ##x = msft.history(period="1d")
 ## y = ticker_sym.splits
@@ -48,7 +50,7 @@ stock2 = ticker_sym1.history(interval='1d', start="2020-05-20", end="2020-11-25"
 ## gets the closing price
 stock1closepr = stock1.dropna()["Close"]
 stock2closepr = stock2.dropna()["Close"]
-
+print(stock1closepr)
 ## divides by 100 to get percent in decimal 
 stock1close = stock1closepr/100
 stock2close = stock2closepr/100
@@ -69,9 +71,8 @@ stock2rets =  stock2close.pct_change()
 
 ## Creates a wealth index with 1,000 start value 
 
-
-wealth_stock1close = round(30112*(1+stock1rets).cumprod(),2)
-wealth_stock2close = round(30112*(1+stock2rets).cumprod(),2)
+wealth_stock1close = round(int(args.amount)*(1+stock1rets).cumprod(),2)
+wealth_stock2close = round(int(args.amount)*(1+stock2rets).cumprod(),2)
 wealth_stock1close.plot.line(label=ticker_sym, legend=True)
 wealth_stock2close.plot.line(label=ticker_sym1, legend=True)
 plt.show()
@@ -79,6 +80,6 @@ wealth1last = (wealth_stock1close.tail(1))
 wealth2last = (wealth_stock2close.tail(1))
 print(wealth1last[0] - wealth2last[0])
 print(str(ticker_sym) + " returns")
-print(((wealth1last[0]/30112)-1)*100)
+print(((wealth1last[0]/int(args.amount))-1)*100)
 print(str(ticker_sym1) + " returns")
-print(((wealth2last[0]/30112)-1)*100)
+print(((wealth2last[0]/int(args.amount))-1)*100)
