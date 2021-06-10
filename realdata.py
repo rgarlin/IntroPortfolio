@@ -86,6 +86,10 @@ pd.set_option('display.max_rows', None)
 
 x = ticker_sym.history(interval='1mo', period="max")
 xday = ticker_sym.history(interval='1d', period="max")
+## x = ticker_sym.history(interval='1mo', start="2011-10-01", end="2021-05-01")
+## xday = ticker_sym.history(interval='1d', start="2018-10-01", end="2021-06-07")
+
+
 ##x = msft.history(period="1d")
 y = ticker_sym.splits
 z = ticker_sym.dividends
@@ -99,9 +103,8 @@ xdayclose = xdaycloseprice/100
 ## changes date format 
 xclose.index = pd.to_datetime(xclose.index, format="%Y%m")
 xclose.index = xclose.index.to_period('M')
-xdayclose.index = pd.to_datetime(xdayclose.index, format="%Y%m")
-xdayclose.index = xdayclose.index.to_period('M')
-
+xdayclose.index = pd.to_datetime(xdayclose.index, format="%m")
+xdayclose.index = xdayclose.index.to_period('W')
 
 ## converts prices to percent change 
 xreturns = xclose.pct_change()
@@ -109,7 +112,7 @@ xdayreturns = xdayclose.pct_change()
 ##print(xreturns)
 
 ## Creates a wealth index with 1,000 start value 
-wealth_xclose = round(1000*(1+xreturns).cumprod(),2)
+wealth_xclose = round(100000*(1+xreturns).cumprod(),2)
 ##print(wealth_xclose.head)
 ##wealth_xclose.plot.line()
 ##plt.show()
@@ -118,7 +121,8 @@ wealth_xclose = round(1000*(1+xreturns).cumprod(),2)
 previous_xpeak = wealth_xclose.cummax()
 ##previous_xpeak.plot.line()
 ##plt.show()
-
+xdaycloseprice.plot.line()
+plt.show()
 ## Computes drawdown from previous peaks.
 xdraw_down = (wealth_xclose - previous_xpeak)/previous_xpeak
 print(xdraw_down.idxmin())
@@ -166,24 +170,39 @@ roll_down = down.ewm(com=period - 1, adjust=False).mean().abs()
 rs = roll_up / roll_down   # relative strength =  average gain/average loss
 rsi = 100-(100/(1+rs))
 
-## Rollong averages, but need to get daily data 
-x_rolling = xdaycloseprice["2017":].rolling(window=30).mean()
-x_rolling50 = xdaycloseprice["2017":].rolling(window=50).mean()
-x_rolling200 = xdaycloseprice["2017":].rolling(window=200).mean()
-xdaycloseprice["2017":].plot.line(label='stock price', legend=True)
+recentclose = xdaycloseprice["2019":]
+## Rolling averages, but need to get daily data 
+## x_rolling10 = xdaycloseprice["2019":].rolling(window=10).mean()
+x_rolling10 = xdaycloseprice["2019":].rolling(window=10).mean()
+x_rolling = xdaycloseprice["2019":].rolling(window=30).mean()
+x_rolling50 = xdaycloseprice["2019":].rolling(window=50).mean()
+x_rolling200 = xdaycloseprice["2019":].rolling(window=200).mean()
+xdaycloseprice["2019":].plot.line(label='stock price', legend=True)
 x_rolling.plot.line(label='30 DMA', legend=True)
-x_rolling50["2017":].plot.line(label='50 DMA', legend=True)
-x_rolling200["2017":].plot.line(label='200 DMA', legend=True)
+x_rolling10.plot.line(label='10 DMA', legend=True)
+x_rolling50.plot.line(label='50 DMA', legend=True)
+x_rolling200.plot.line(label='200 DMA', legend=True)
 plt.show()
 
 ## test RSI
-rsi.tail(25000).plot.line(label="RSI", legend=True)
-plt.axhline(0, linestyle='--', alpha=0.1)
-plt.axhline(20, linestyle='--', alpha=0.5)
-plt.axhline(30, linestyle='--')
+##print(rsi.index)
+##print(x_rolling.index)
 
-plt.axhline(70, linestyle='--')
-plt.axhline(80, linestyle='--', alpha=0.5)
+
+plt.figure()
+plt.subplot(2,1,1)
+rsi.tail(230).plot.line(label="RSI", legend=True)
+plt.axhline(0, linestyle='--', alpha=0.1)
+plt.axhline(20, linestyle='--', alpha=0.5, color="red")
+plt.axhline(30, linestyle='--', color="red")
+plt.axhline(70, linestyle='--', color="green")
+plt.axhline(80, linestyle='--', alpha=0.5, color="green")
 plt.axhline(100, linestyle='--', alpha=0.1)
+plt.subplot(2,1,2)
+xdayclose1 = xdayclose*100
+xdayclose1["2020":].plot.line(label='stock price', legend=True)
 plt.show()
-print(rsi.tail(25000))
+print(rsi.tail(5))
+
+print(xdaycloseprice.tail(5))
+##print(recentclose)
